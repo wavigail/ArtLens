@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtLens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Hebrew:wght@400;700&family=Assistant:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ArtLens Design System
+       Dark hero → light content, museum editorial
+       Mustard #C8960A · Black #1A1A1A · Off-white #F5F0EB · Red accent #C43A31 */
+
+    :root {
+      --black: #1A1A1A;
+      --mustard: #C8960A;
+      --mustard-light: #E8C455;
+      --mustard-bg: rgba(200, 150, 10, 0.08);
+      --mustard-bg-hover: rgba(200, 150, 10, 0.18);
+      --off-white: #F5F0EB;
+      --white: #FFFFFF;
+      --red: #C43A31;
+      --border: #E0D8CE;
+      --border-dark: #333;
+      --muted: #8A8580;
+      --bg: var(--off-white);
+      --fg: var(--black);
+      --display: 'Noto Serif Hebrew', Georgia, 'Times New Roman', serif;
+      --body: 'Assistant', system-ui, -apple-system, sans-serif;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--black);
+      padding: 52px 24px 60px;
+      text-align: center;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-text {
+      font-family: var(--display);
+      font-size: 40px;
+      font-weight: 400;
+      color: var(--off-white);
+      letter-spacing: 2px;
+    }
+
+    .tagline {
+      font-size: 11px;
+      color: var(--mustard);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 6px;
+    }
+
+    .hero-intro {
+      font-size: 17px;
+      color: #999;
+      margin-top: 28px;
+      max-width: 440px;
+      margin-inline: auto;
+      line-height: 1.8;
+    }
+
+    /* ── Camera ── */
+    .camera-section {
+      padding: 28px 24px 0;
+      text-align: center;
+    }
+
+    .camera-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--body);
+      font-size: 15px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .camera-btn:hover, .camera-btn:focus-visible {
+      border-color: var(--mustard);
+      color: var(--mustard);
+      outline: none;
+    }
+
+    .camera-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    #camera-input { display: none; }
+
+    .camera-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      max-width: 360px;
+      margin-inline: auto;
+      line-height: 1.7;
+    }
+
+    .photo-preview {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .photo-preview.visible { display: block; }
+
+    .photo-preview img {
+      max-width: 180px;
+      max-height: 180px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 2px solid var(--border);
+    }
+
+    .photo-preview p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      width: 40px;
+      height: 2px;
+      background: var(--mustard);
+      margin: 28px auto;
+    }
+
+    /* ── Search ── */
+    .search-section {
+      padding: 8px 24px 40px;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    .fields {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .field label {
+      display: block;
+      font-family: var(--display);
+      font-size: 16px;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--body);
+      font-size: 16px;
+      background: var(--white);
+      color: var(--fg);
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    .field input:focus { border-color: var(--mustard); }
+
+    .field input::placeholder {
+      color: #C0B8B0;
+      font-size: 14px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--mustard-bg);
+      border: none;
+      border-radius: 14px;
+      font-family: var(--body);
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .chip:hover, .chip:focus-visible {
+      background: var(--mustard-bg-hover);
+      color: var(--mustard);
+      outline: none;
+    }
+
+    .chip.active {
+      background: var(--mustard);
+      color: var(--white);
+    }
+
+    .go-btn {
+      display: block;
+      width: 100%;
+      margin-top: 32px;
+      padding: 16px;
+      background: var(--black);
+      color: var(--off-white);
+      border: none;
+      border-radius: 4px;
+      font-family: var(--body);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.2s;
+    }
+
+    .go-btn:hover { background: #2A2A2A; }
+    .go-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Loading ── */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 60px 24px;
+    }
+
+    .loading.visible { display: block; }
+
+    .loading-text {
+      font-family: var(--display);
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    .loading-dots::after {
+      content: '';
+      animation: dots 1.4s steps(4) infinite;
+    }
+
+    @keyframes dots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+
+    /* ── Fallback message ── */
+    .fallback-box {
+      display: none;
+      text-align: center;
+      padding: 0 24px 20px;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    .fallback-box.visible { display: block; }
+
+    .fallback-msg {
+      font-family: var(--display);
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+
+    .fallback-note {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .fallback-label {
+      font-size: 11px;
+      color: var(--mustard);
+      letter-spacing: 1px;
+      margin-top: 12px;
+    }
+
+    /* ── Result ── */
+    .result {
+      display: none;
+      padding: 0 24px 48px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .result.visible { display: block; }
+
+    .result-img-wrap {
+      width: 100%;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #E8E3DD;
+      min-height: 180px;
+      position: relative;
+    }
+
+    .result-img {
+      width: 100%;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    .result-img.loaded { opacity: 1; }
+
+    .result-meta { margin-top: 24px; }
+
+    .result-title {
+      font-family: var(--display);
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .result-artist {
+      font-size: 16px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .result-date {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Palette ── */
+    .palette-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .palette-label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ── More info ── */
+    .more-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 24px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--body);
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .more-btn:hover {
+      border-color: var(--mustard);
+      color: var(--mustard);
+    }
+
+    .details-panel {
+      display: none;
+      margin-top: 16px;
+      padding: 20px;
+      background: var(--white);
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .details-panel.visible { display: block; }
+
+    .detail-row {
+      display: flex;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid #F0ECE6;
+      font-size: 14px;
+    }
+
+    .detail-row:last-child { border-bottom: none; }
+
+    .detail-key {
+      font-weight: 500;
+      color: var(--muted);
+      min-width: 90px;
+      flex-shrink: 0;
+    }
+
+    .detail-val { color: var(--fg); }
+
+    .museum-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--mustard);
+      text-decoration: none;
+    }
+
+    .museum-link:hover { text-decoration: underline; }
+
+    /* ── Again button ── */
+    .again-btn {
+      display: block;
+      margin: 36px auto 0;
+      padding: 12px 36px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--body);
+      font-size: 14px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .again-btn:hover {
+      border-color: var(--mustard);
+      color: var(--mustard);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 32px 24px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+
+    .footer p {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.9;
+    }
+
+    .footer a {
+      color: var(--mustard);
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .hero { padding: 36px 20px 44px; }
+      .logo-text { font-size: 32px; }
+      .hero-intro { font-size: 15px; }
+      .search-section { padding: 8px 20px 32px; }
+      .result { padding: 0 20px 40px; }
+      .result-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="logo">
+      <svg width="42" height="52" viewBox="0 0 42 52" fill="none">
+        <rect x="1" y="1" width="32" height="32" rx="2" stroke="#C8960A" stroke-width="2.5"/>
+        <line x1="29" y1="29" x2="41" y2="41" stroke="#C8960A" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="8" y="8" width="18" height="12" rx="1" fill="#C8960A" opacity="0.3"/>
+        <circle cx="20" cy="22" r="4" fill="#C8960A" opacity="0.4"/>
+      </svg>
+      <span class="logo-text">ArtLens</span>
+    </div>
+    <div class="tagline">Discover by Design</div>
+    <p class="hero-intro">
+      מה הדבר שמסקרן אותך? תארו אותו בשלוש מילים וגלו איזו יצירת אמנות מחכה לכם במוזיאון
+    </p>
+  </header>
+
+  <!-- Camera -->
+  <section class="camera-section">
+    <button class="camera-btn" id="camera-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2v11z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      צלמו חפץ (לא חובה)
+    </button>
+    <input type="file" id="camera-input" accept="image/*" capture="environment">
+    <p class="camera-note">
+      הדפדפן שלכם עשוי לבקש הרשאה למצלמה. אין מה לדאוג: התמונה נשארת רק במכשיר שלכם, לא שולחים אותה לשום מקום.
+    </p>
+    <div class="photo-preview" id="photo-preview">
+      <img id="photo-img" alt="החפץ שצולם">
+      <p>עכשיו תארו את מה שצילמתם למטה</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Search -->
+  <section class="search-section" id="search-section">
+    <div class="fields">
+      <div class="field">
+        <label>מה אתם רואים?</label>
+        <input type="text" id="f-obj" placeholder="כיסא, כוס, טבעת...">
+        <div class="chips">
+          <button class="chip" data-field="f-obj" data-en="wooden chair">כיסא עץ</button>
+          <button class="chip" data-field="f-obj" data-en="glass cup goblet">כוס זכוכית</button>
+          <button class="chip" data-field="f-obj" data-en="ceramic mug bowl">ספל קרמיקה</button>
+          <button class="chip" data-field="f-obj" data-en="silver ring jewelry">טבעת כסף</button>
+          <button class="chip" data-field="f-obj" data-en="lamp candelabra light">מנורה</button>
+          <button class="chip" data-field="f-obj" data-en="vase vessel">אגרטל</button>
+          <button class="chip" data-field="f-obj" data-en="clock watch timepiece">שעון</button>
+          <button class="chip" data-field="f-obj" data-en="mirror looking glass">מראה</button>
+          <button class="chip" data-field="f-obj" data-en="pitcher jug">כד</button>
+          <button class="chip" data-field="f-obj" data-en="bowl dish">קערה</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>איזו אווירה?</label>
+        <input type="text" id="f-mood" placeholder="חם, מסתורי, שקט...">
+        <div class="chips">
+          <button class="chip" data-field="f-mood" data-en="warm cozy golden">חם ונעים</button>
+          <button class="chip" data-field="f-mood" data-en="cold mysterious dark">קר ומסתורי</button>
+          <button class="chip" data-field="f-mood" data-en="dramatic bold intense">דרמטי</button>
+          <button class="chip" data-field="f-mood" data-en="quiet calm serene soft">שקט ורך</button>
+          <button class="chip" data-field="f-mood" data-en="nostalgic vintage old">נוסטלגי</button>
+          <button class="chip" data-field="f-mood" data-en="ancient antique classical">עתיק</button>
+          <button class="chip" data-field="f-mood" data-en="elegant refined luxury">אלגנטי</button>
+          <button class="chip" data-field="f-mood" data-en="wild untamed raw">פראי</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>איזו צורה?</label>
+        <input type="text" id="f-shape" placeholder="עגול, חד, זורם...">
+        <div class="chips">
+          <button class="chip" data-field="f-shape" data-en="round circular smooth">עגול וחלק</button>
+          <button class="chip" data-field="f-shape" data-en="sharp angular geometric">חד וגיאומטרי</button>
+          <button class="chip" data-field="f-shape" data-en="flowing fluid organic">זורם ואורגני</button>
+          <button class="chip" data-field="f-shape" data-en="symmetrical balanced">סימטרי</button>
+          <button class="chip" data-field="f-shape" data-en="minimal simple clean">מינימלי</button>
+          <button class="chip" data-field="f-shape" data-en="delicate fine thin">עדין</button>
+          <button class="chip" data-field="f-shape" data-en="twisted curved spiral">מפותל</button>
+          <button class="chip" data-field="f-shape" data-en="massive heavy solid">מאסיבי</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="go-btn" id="go-btn">גלו יצירה</button>
+  </section>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <p class="loading-text">מחפשים במוזיאון<span class="loading-dots"></span></p>
+  </div>
+
+  <!-- Error -->
+  <div class="fallback-box" id="error-box">
+    <p class="fallback-msg">אופס, לא הצלחנו להתחבר למוזיאון</p>
+    <p class="fallback-note">בדקו שיש חיבור אינטרנט ונסו שוב</p>
+    <button class="again-btn" onclick="hide($('error-box')); $('search-section').style.display=''; $('f-obj').focus();" style="margin-top:20px">נסו שוב</button>
+  </div>
+
+  <!-- Fallback -->
+  <div class="fallback-box" id="fallback-box">
+    <p class="fallback-msg" id="fallback-msg"></p>
+    <p class="fallback-note" id="fallback-note"></p>
+    <p class="fallback-label">אבל מצאנו משהו אחר:</p>
+  </div>
+
+  <!-- Result -->
+  <section class="result" id="result">
+    <div class="result-img-wrap">
+      <img class="result-img" id="result-img" alt="">
+    </div>
+    <div class="result-meta">
+      <h2 class="result-title" id="result-title"></h2>
+      <p class="result-artist" id="result-artist"></p>
+      <p class="result-date" id="result-date"></p>
+    </div>
+
+    <div class="palette-row" id="palette-row">
+      <span class="palette-label">פלטה</span>
+    </div>
+
+    <button class="more-btn" id="more-btn">
+      עוד על היצירה
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+    </button>
+
+    <div class="details-panel" id="details-panel">
+      <div class="detail-row">
+        <span class="detail-key">חומר וטכניקה</span>
+        <span class="detail-val" id="d-medium"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">סגנון</span>
+        <span class="detail-val" id="d-style"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">חומרים</span>
+        <span class="detail-val" id="d-materials"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">סיווג</span>
+        <span class="detail-val" id="d-class"></span>
+      </div>
+      <a class="museum-link" id="museum-link" href="#" target="_blank" rel="noopener">
+        לצפייה באתר המוזיאון
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2h6v6M10 2L4 8"/></svg>
+      </a>
+    </div>
+
+    <button class="again-btn" id="again-btn">חיפוש חדש</button>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>
+      ArtLens · Discover by Design<br>
+      נתונים מ-<a href="https://www.artic.edu" target="_blank">The Art Institute of Chicago</a> · CC0<br>
+      פרויקט במסגרת מגמת אמנויות העיצוב · 2027
+    </p>
+  </footer>
+
+  <script>
+    // ── Hebrew → English keyword map ──
+    const dict = {
+      'כיסא':'chair','עץ':'wood wooden','כוס':'cup glass goblet','זכוכית':'glass',
+      'טבעת':'ring','כסף':'silver','ספל':'cup mug','קרמיקה':'ceramic pottery',
+      'מנורה':'lamp light candelabra','אגרטל':'vase vessel','שעון':'clock watch',
+      'מראה':'mirror','כד':'pitcher jug','קערה':'bowl dish','צעיף':'textile scarf',
+      'חם':'warm','נעים':'gentle cozy','קר':'cold cool','מסתורי':'mysterious dark',
+      'דרמטי':'dramatic bold','שקט':'quiet calm','רך':'soft delicate',
+      'נוסטלגי':'nostalgic vintage','עתיק':'ancient antique','אלגנטי':'elegant refined',
+      'פראי':'wild untamed','שמח':'bright cheerful','מודרני':'modern contemporary',
+      'עגול':'round circular','חלק':'smooth','חד':'sharp angular',
+      'גיאומטרי':'geometric','זורם':'flowing fluid','אורגני':'organic natural',
+      'סימטרי':'symmetrical','מינימלי':'minimal simple','עדין':'delicate fine',
+      'מפותל':'twisted curved spiral','מאסיבי':'massive heavy solid',
+      'ברונזה':'bronze','ברזל':'iron metal','זהב':'gold golden',
+      'אדום':'red','כחול':'blue','ירוק':'green','לבן':'white',
+      'שחור':'black','צהוב':'yellow','כתום':'orange',
+    };
+
+    function toEnglish(text) {
+      return text.split(/[\s,]+/).filter(Boolean).map(w => dict[w] || w).join(' ');
+    }
+
+    // ── Chip click ──
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const field = document.getElementById(chip.dataset.field);
+        field.value = chip.textContent;
+        chip.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      });
+    });
+
+    // ── Camera ──
+    const cameraBtn = document.getElementById('camera-btn');
+    const cameraInput = document.getElementById('camera-input');
+    const photoPreview = document.getElementById('photo-preview');
+
+    cameraBtn.addEventListener('click', () => cameraInput.click());
+
+    cameraInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        document.getElementById('photo-img').src = ev.target.result;
+        photoPreview.classList.add('visible');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ── Fallback artworks ──
+    const fallbacks = [
+      {
+        msg: 'חיפשנו בכל 300,000 היצירות. מה שתיארתם עדיין לא הגיע למוזיאון.',
+        note: 'בינתיים, הנה מראה. להסתכל על עצמכם זה גם אמנות.',
+        id: 14763
+      },
+      {
+        msg: 'גם האמנים הגדולים לא תמיד מצאו מה שחיפשו.',
+        note: 'אבל הם המשיכו לחפש. נסו שוב עם מילים אחרות?',
+        id: 49714
+      },
+      {
+        msg: 'לא מצאנו התאמה, אבל מצאנו ענני פרחים. וזה שווה.',
+        note: 'Odilon Redon, 1903. לפעמים מה שלא חיפשתם יותר מעניין.',
+        id: 76395
+      },
+      {
+        msg: 'ההשראה לא תמיד מגיעה ישר. לפעמים היא לוקחת סיבוב.',
+        note: 'נסו מילים אחרות, אולי פחות ספציפיות?',
+        id: 104463
+      }
+    ];
+
+    // ── UI helpers ──
+    const $ = id => document.getElementById(id);
+    const show = el => el.classList.add('visible');
+    const hide = el => el.classList.remove('visible');
+
+    // ── Search ──
+    $('go-btn').addEventListener('click', doSearch);
+    document.querySelectorAll('.field input').forEach(input => {
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    });
+
+    async function doSearch() {
+      const obj = $('f-obj').value.trim();
+      const mood = $('f-mood').value.trim();
+      const shape = $('f-shape').value.trim();
+
+      if (!obj && !mood && !shape) { $('f-obj').focus(); return; }
+
+      // Build English query from chips data-en or dictionary
+      let query = '';
+      document.querySelectorAll('.chip.active').forEach(c => { query += ' ' + c.dataset.en; });
+      if (!query.trim()) {
+        query = toEnglish([obj, mood, shape].filter(Boolean).join(' '));
+      }
+
+      $('search-section').style.display = 'none';
+      hide($('fallback-box'));
+      hide($('result'));
+      hide($('error-box'));
+      show($('loading'));
+
+      const fields = 'id,title,artist_display,date_display,medium_display,image_id,color,style_title,classification_title,material_titles';
+
+      try {
+        const data = await apiFetch(`/artworks/search?q=${encodeURIComponent(query.trim())}&limit=10&fields=${fields}`);
+        const hits = data.data.filter(a => a.image_id);
+
+        if (hits.length > 0) {
+          showResult(hits[0], data.config);
+        } else {
+          await showFallback(data.config);
+        }
+      } catch {
+        const fallbackConfig = { iiif_url: 'https://www.artic.edu/iiif/2', website_url: 'https://www.artic.edu' };
+        try {
+          await showFallback(fallbackConfig);
+        } catch {
+          hide($('loading'));
+          show($('error-box'));
+        }
+      }
+    }
+
+    async function apiFetch(path) {
+      const proxy = '/api' + path;
+      const direct = 'https://api.artic.edu/api/v1' + path;
+      try {
+        const res = await fetch(proxy);
+        if (res.ok) return res.json();
+      } catch {}
+      const res = await fetch(direct);
+      if (!res.ok) throw new Error(res.status);
+      return res.json();
+    }
+
+    function showResult(art, config) {
+      hide($('loading'));
+
+      const imgUrl = `${config.iiif_url}/${art.image_id}/full/843,/0/default.jpg`;
+      const img = $('result-img');
+      img.classList.remove('loaded');
+      img.onload = () => img.classList.add('loaded');
+      img.onerror = () => { img.src = ''; img.alt = 'התמונה לא זמינה'; };
+      img.src = imgUrl;
+      img.alt = art.title;
+
+      $('result-title').textContent = art.title;
+      $('result-artist').textContent = art.artist_display || '';
+      $('result-date').textContent = art.date_display || '';
+
+      // Palette
+      const row = $('palette-row');
+      row.innerHTML = '<span class="palette-label">פלטה</span>';
+      if (art.color) {
+        const c = art.color;
+        const swatches = [
+          `hsl(${c.h}, ${c.s}%, ${c.l}%)`,
+          `hsl(${c.h}, ${Math.max(c.s - 15, 5)}%, ${Math.min(c.l + 25, 92)}%)`,
+          `hsl(${(c.h + 40) % 360}, ${c.s}%, ${c.l}%)`,
+          `hsl(${(c.h + 180) % 360}, ${Math.max(c.s - 25, 5)}%, ${Math.min(c.l + 10, 85)}%)`,
+        ];
+        swatches.forEach(bg => {
+          const s = document.createElement('div');
+          s.className = 'swatch';
+          s.style.background = bg;
+          row.appendChild(s);
+        });
+      }
+
+      // Details
+      $('d-medium').textContent = art.medium_display || '—';
+      $('d-style').textContent = art.style_title || '—';
+      $('d-materials').textContent = (art.material_titles?.length) ? art.material_titles.join(', ') : '—';
+      $('d-class').textContent = art.classification_title || '—';
+      $('museum-link').href = `${config.website_url}/artworks/${art.id}`;
+
+      // Reset panel
+      hide($('details-panel'));
+      const chevron = $('more-btn').querySelector('svg');
+      if (chevron) chevron.style.transform = '';
+      $('more-btn').querySelector('svg')?.closest('button');
+
+      show($('result'));
+    }
+
+    async function showFallback(config) {
+      const fb = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      $('fallback-msg').textContent = fb.msg;
+      $('fallback-note').textContent = fb.note;
+
+      const fields = 'id,title,artist_display,date_display,medium_display,image_id,color,style_title,classification_title,material_titles';
+      const data = await apiFetch(`/artworks/${fb.id}?fields=${fields}`);
+      show($('fallback-box'));
+      showResult(data.data, config);
+    }
+
+    // ── More details toggle ──
+    $('more-btn').addEventListener('click', () => {
+      const panel = $('details-panel');
+      const open = panel.classList.contains('visible');
+      if (open) hide(panel); else show(panel);
+      const chevron = $('more-btn').querySelector('svg');
+      if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
+    });
+
+    // ── New search ──
+    $('again-btn').addEventListener('click', () => {
+      hide($('result'));
+      hide($('fallback-box'));
+      $('search-section').style.display = '';
+      $('f-obj').value = '';
+      $('f-mood').value = '';
+      $('f-shape').value = '';
+      document.querySelectorAll('.chip.active').forEach(c => c.classList.remove('active'));
+      $('f-obj').focus();
+    });
+  </script>
+
+</body>
+</html>
