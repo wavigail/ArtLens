@@ -483,6 +483,46 @@
       .result { padding: 0 20px 40px; }
       .result-title { font-size: 22px; }
     }
+
+    /* ── AI Analysis ── */
+    .ai-status { margin-top: 14px; font-size: 14px; color: var(--mustard); display: none; }
+    .ai-status.visible { display: block; }
+    .ai-status.error { color: var(--red); }
+
+    /* ── Results Count ── */
+    .results-count {
+      text-align: center; padding: 0 24px 16px;
+      font-size: 14px; color: var(--muted); display: none;
+    }
+    .results-count.visible { display: block; }
+    .results-count strong { color: var(--mustard); font-weight: 600; }
+
+    /* ── More Results ── */
+    .results-grid {
+      display: none; padding: 0 24px 20px;
+      max-width: 600px; margin: 0 auto;
+    }
+    .results-grid.visible { display: flex; flex-direction: column; gap: 12px; }
+    .more-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .result-card {
+      display: flex; gap: 16px; padding: 14px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 4px; cursor: pointer; transition: border-color 0.2s;
+    }
+    .result-card:hover { border-color: var(--mustard); }
+    .result-card-img {
+      width: 72px; height: 72px; object-fit: cover;
+      border-radius: 4px; background: #E8E3DD; flex-shrink: 0;
+    }
+    .result-card-info { flex: 1; min-width: 0; }
+    .result-card-title {
+      font-family: var(--display); font-size: 15px; font-weight: 600;
+      line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .result-card-artist {
+      font-size: 13px; color: var(--muted); margin-top: 2px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -519,7 +559,8 @@
     </p>
     <div class="photo-preview" id="photo-preview">
       <img id="photo-img" alt="החפץ שצולם">
-      <p>עכשיו תארו את מה שצילמתם למטה</p>
+      <p id="photo-text">עכשיו תארו את מה שצילמתם למטה</p>
+      <p class="ai-status" id="ai-status"></p>
     </div>
   </section>
 
@@ -598,6 +639,9 @@
     <p class="fallback-label">אבל מצאנו משהו אחר:</p>
   </div>
 
+  <!-- Results Count -->
+  <div class="results-count" id="results-count"></div>
+
   <!-- Result -->
   <section class="result" id="result">
     <div class="result-img-wrap">
@@ -641,6 +685,9 @@
       </a>
     </div>
 
+    <!-- More Results -->
+    <div class="results-grid" id="results-grid"></div>
+
     <button class="again-btn" id="again-btn">חיפוש חדש</button>
   </section>
 
@@ -654,6 +701,24 @@
   </footer>
 
   <script>
+    // ── AI Configuration ──
+    const HF_TOKEN = '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';
+
+    let lastAnalysis = '';
+
+    async function analyzeImage(dataUrl) {
+      if (!HF_TOKEN) return '';
+      const r = await fetch(dataUrl);
+      const blob = await r.blob();
+      const res = await fetch(
+        'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large',
+        { method: 'POST', headers: { 'Authorization': 'Bearer ' + HF_TOKEN }, body: blob }
+      );
+      if (!res.ok) throw new Error(res.status);
+      const json = await res.json();
+      return json[0]?.generated_text || '';
+    }
+
     // ── Hebrew → English keyword map ──
     const dict = {
       'כיסא':'chair','עץ':'wood wooden','כוס':'cup glass goblet','זכוכית':'glass',
@@ -694,13 +759,33 @@
 
     cameraBtn.addEventListener('click', () => cameraInput.click());
 
-    cameraInput.addEventListener('change', e => {
+    cameraInput.addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = ev => {
-        document.getElementById('photo-img').src = ev.target.result;
+      reader.onload = async ev => {
+        const dataUrl = ev.target.result;
+        document.getElementById('photo-img').src = dataUrl;
         photoPreview.classList.add('visible');
+
+        if (HF_TOKEN) {
+          const status = $('ai-status');
+          const photoText = $('photo-text');
+          status.textContent = 'מנתחים את התמונה...';
+          status.className = 'ai-status visible';
+          photoText.textContent = '';
+          try {
+            lastAnalysis = await analyzeImage(dataUrl);
+            status.textContent = 'AI זיהה: ' + lastAnalysis;
+            photoText.textContent = 'מחפשים יצירות דומות...';
+            doSearch();
+          } catch {
+            status.textContent = 'לא הצלחנו לנתח. תארו ידנית למטה.';
+            status.classList.add('error');
+            photoText.textContent = '';
+            lastAnalysis = '';
+          }
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -745,19 +830,22 @@
       const mood = $('f-mood').value.trim();
       const shape = $('f-shape').value.trim();
 
-      if (!obj && !mood && !shape) { $('f-obj').focus(); return; }
+      if (!obj && !mood && !shape && !lastAnalysis) { $('f-obj').focus(); return; }
 
-      // Build English query from chips data-en or dictionary
       let query = '';
-      document.querySelectorAll('.chip.active').forEach(c => { query += ' ' + c.dataset.en; });
-      if (!query.trim()) {
-        query = toEnglish([obj, mood, shape].filter(Boolean).join(' '));
+      if (!obj && !mood && !shape && lastAnalysis) {
+        query = lastAnalysis;
+      } else {
+        document.querySelectorAll('.chip.active').forEach(c => { query += ' ' + c.dataset.en; });
+        if (!query.trim()) query = toEnglish([obj, mood, shape].filter(Boolean).join(' '));
       }
 
       $('search-section').style.display = 'none';
       hide($('fallback-box'));
       hide($('result'));
       hide($('error-box'));
+      hide($('results-count'));
+      hide($('results-grid'));
       show($('loading'));
 
       const fields = 'id,title,artist_display,date_display,medium_display,image_id,color,style_title,classification_title,material_titles';
@@ -767,7 +855,11 @@
         const hits = data.data.filter(a => a.image_id);
 
         if (hits.length > 0) {
+          const total = data.pagination?.total || hits.length;
+          $('results-count').innerHTML = 'נמצאו <strong>' + total.toLocaleString() + '</strong> יצירות דומות';
+          show($('results-count'));
           showResult(hits[0], data.config);
+          if (hits.length > 1) showMoreResults(hits.slice(1, 4), data.config);
         } else {
           await showFallback(data.config);
         }
@@ -844,6 +936,37 @@
       show($('result'));
     }
 
+    function showMoreResults(arts, config) {
+      const grid = $('results-grid');
+      grid.innerHTML = '<p class="more-label">עוד תוצאות:</p>';
+      arts.forEach(art => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        const img = document.createElement('img');
+        img.className = 'result-card-img';
+        if (art.image_id) img.src = config.iiif_url + '/' + art.image_id + '/full/200,/0/default.jpg';
+        img.onerror = function() { this.style.display = 'none'; };
+        card.appendChild(img);
+        const info = document.createElement('div');
+        info.className = 'result-card-info';
+        const t = document.createElement('div');
+        t.className = 'result-card-title';
+        t.textContent = art.title || '';
+        info.appendChild(t);
+        const a = document.createElement('div');
+        a.className = 'result-card-artist';
+        a.textContent = art.artist_display || '';
+        info.appendChild(a);
+        card.appendChild(info);
+        card.addEventListener('click', () => {
+          showResult(art, config);
+          window.scrollTo({ top: $('result').offsetTop - 20, behavior: 'smooth' });
+        });
+        grid.appendChild(card);
+      });
+      show(grid);
+    }
+
     async function showFallback(config) {
       const fb = fallbacks[Math.floor(Math.random() * fallbacks.length)];
       $('fallback-msg').textContent = fb.msg;
@@ -868,6 +991,9 @@
     $('again-btn').addEventListener('click', () => {
       hide($('result'));
       hide($('fallback-box'));
+      hide($('results-count'));
+      hide($('results-grid'));
+      lastAnalysis = '';
       $('search-section').style.display = '';
       $('f-obj').value = '';
       $('f-mood').value = '';
